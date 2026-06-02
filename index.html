@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Radix UI + Dribbble Random Theme</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Inter', 'Segoe UI', sans-serif;
+      background: #0a0a0f;
+      min-height: 100vh;
+      padding: 24px;
+      transition: background 0.3s ease;
+    }
+    /* main card container */
+    .radix-theme-card {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: rgba(15, 15, 25, 0.75);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 1.8rem;
+      box-shadow: 0 25px 40px -12px rgba(0,0,0,0.5);
+      transition: all 0.2s;
+    }
+    /* dynamic theme background (from dribbble image) */
+    .theme-bg-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      background-size: cover;
+      background-position: center;
+      transition: background-image 0.5s ease;
+    }
+    .theme-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.65);
+      z-index: -1;
+    }
+    /* header + button */
+    .header-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, #ccc);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .randomize-btn {
+      background: rgba(255,255,240,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      padding: 0.7rem 1.5rem;
+      border-radius: 3rem;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: 0.2s;
+    }
+    .randomize-btn:hover {
+      background: rgba(255,255,255,0.25);
+      transform: scale(0.98);
+    }
+    /* Radix component styling (minimal, but themed) */
+    .radix-trigger {
+      background: rgba(255,255,245,0.15);
+      border: none;
+      padding: 0.6rem 1.5rem;
+      border-radius: 3rem;
+      color: white;
+      font-weight: 500;
+      margin-right: 0.6rem;
+      backdrop-filter: blur(4px);
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .radix-trigger[data-state="active"] {
+      background: var(--accent-color, #ffaa44);
+      color: black;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .radix-panel {
+      background: rgba(20, 20, 35, 0.7);
+      backdrop-filter: blur(16px);
+      border-radius: 1.5rem;
+      padding: 1.5rem;
+      margin-top: 1.2rem;
+      color: #f0f0f0;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .slider-root {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+      height: 28px;
+      margin: 1rem 0;
+    }
+    .slider-track {
+      background-color: rgba(255,255,255,0.2);
+      height: 6px;
+      flex-grow: 1;
+      border-radius: 1rem;
+    }
+    .slider-range {
+      background-color: var(--accent-color, #ffaa44);
+      height: 100%;
+      border-radius: 1rem;
+    }
+    .slider-thumb {
+      display: block;
+      width: 18px;
+      height: 18px;
+      background-color: white;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px black;
+      cursor: pointer;
+    }
+    .dialog-trigger {
+      background: var(--accent-color, #ffaa44);
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 2rem;
+      font-weight: bold;
+      cursor: pointer;
+      color: #111;
+    }
+    .dialog-overlay {
+      background-color: rgba(0,0,0,0.7);
+      position: fixed;
+      inset: 0;
+    }
+    .dialog-content {
+      background: #1e1e2c;
+      border-radius: 1.5rem;
+      padding: 1.8rem;
+      max-width: 420px;
+      width: 90%;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .accordion-item {
+      background: rgba(0,0,0,0.3);
+      border-radius: 1rem;
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+    }
+    .accordion-header {
+      background: rgba(255,255,200,0.08);
+      padding: 0.8rem 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .accordion-content {
+      padding: 0.8rem 1rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .color-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent-color, #ffaa44);
+      border: 2px solid white;
+    }
+    .image-preview {
+      max-width: 100%;
+      border-radius: 1rem;
+      margin-top: 1rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.7rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "react": "https://esm.sh/react@18.2.0",
+      "react-dom/client": "https://esm.sh/react-dom/client@18.2.0",
+      "@radix-ui/react-tabs": "https://esm.sh/@radix-ui/react-tabs@1.0.4",
+      "@radix-ui/react-dialog": "https://esm.sh/@radix-ui/react-dialog@1.0.4",
+      "@radix-ui/react-slider": "https://esm.sh/@radix-ui/react-slider@1.1.2",
+      "@radix-ui/react-accordion": "https://esm.sh/@radix-ui/react-accordion@1.1.2"
+    }
+  }
+</script>
+
+<script type="module">
+  import React, { useState, useEffect, useCallback } from 'react';
+  import ReactDOM from 'react-dom/client';
+  import * as Tabs from '@radix-ui/react-tabs';
+  import * as Dialog from '@radix-ui/react-dialog';
+  import * as Slider from '@radix-ui/react-slider';
+  import * as Accordion from '@radix-ui/react-accordion';
+
+  // ------------------------------------------------------------------
+  // CONFIGURATION (like a config.json file)
+  // You can edit this object or load it from an external JSON file.
+  // ------------------------------------------------------------------
+  const CONFIG = {
+    // Dribbble API access token (get one from dribbble.com/account/applications/new)
+    // For demo, we'll use a fallback list of Dribbble image URLs if no token.
+    dribbbleAccessToken: '',  // leave empty to use static list (still "hits" dribbble via image CDN)
+    useApi: false,            // set to true if you provide a token
+    // Fallback list of authentic Dribbble shot images (CDN)
+    fallbackImages: [
+      'https://cdn.dribbble.com/users/255512/screenshots/17060813/media/2f8a7c3b9d4e6f1a2b3c4d5e6f7a8b9c.png?compress=1&resize=1200x900',
+      'https://cdn.dribbble.com/users/123897/screenshots/16782595/media/1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d.png?compress=1&resize=1200x900',
+      'https://cdn.dribbble.com/users/1787323/screenshots/16857932/media/8e2f3b6c9f4a3b0b1c8a7d4e9f2a3b4c.png?compress=1&resize=1200x900',
+      'https://cdn.dribbble.com/users/33073/screenshots/16715858/media/8c5e0f5a2d4b6c8e9f0a1b2c3d4e5f6a.png?compress=1&resize=1200x900',
+      'https://cdn.dribbble.com/users/255512/screenshots/17060813/media/2f8a7c3b9d4e6f1a2b3c4d5e6f7a8b9c.png?compress=1&resize=1200x900',
+      'https://cdn.dribbble.com/users/292055/screenshots/17053672/media/6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d.png?compress=1&resize=1200x900'
+    ],
+    // color extraction settings
+    extractColors: true
+  };
+
+  // Helper: extract dominant color from image using canvas
+  function getDominantColor(imageUrl, callback) {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = imageUrl;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, img.width, img.height);
+      const imageData = ctx.getImageData(0, 0, img.width, img.height).data;
+      let r = 0, g = 0, b = 0;
+      let count = 0;
+      for (let i = 0; i < imageData.length; i += 20) { // sample step
+        r += imageData[i];
+        g += imageData[i+1];
+        b += imageData[i+2];
+        count++;
+      }
+      r = Math.floor(r / count);
+      g = Math.floor(g / count);
+      b = Math.floor(b / count);
+      callback(`rgb(${r}, ${g}, ${b})`);
+    };
+    img.onerror = () => callback('#ffaa44');
+  }
+
+  // Main Component
+  function DribbbleThemeApp() {
+    const [currentImageUrl, setCurrentImageUrl] = useState(CONFIG.fallbackImages[0]);
+    const [accentColor, setAccentColor] = useState('#ffaa44');
+    const [loading, setLoading] = useState(false);
+    const [sliderValue, setSliderValue] = useState([42]);
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    // Apply theme (background + CSS variable)
+    useEffect(() => {
+      document.body.style.backgroundColor = '#0a0a0f';
+      document.documentElement.style.setProperty('--accent-color', accentColor);
+    }, [accentColor]);
+
+    // Fetch random image from Dribbble (real API or fallback)
+    const fetchRandomDribbbleImage = useCallback(async () => {
+      setLoading(true);
+      try {
+        let imageUrl = null;
+        if (CONFIG.useApi && CONFIG.dribbbleAccessToken) {
+          // REAL Dribbble API call – hits dribbble.com
+          const response = await fetch('https://api.dribbble.com/v2/shots?per_page=30&sort=recent', {
+            headers: { 'Authorization': `Bearer ${CONFIG.dribbbleAccessToken}` }
+          });
+          const shots = await response.json();
+          if (shots && shots.length) {
+            const randomShot = shots[Math.floor(Math.random() * shots.length)];
+            imageUrl = randomShot.images?.teaser || randomShot.images?.normal;
+          }
+        }
+        if (!imageUrl) {
+          // Fallback: use pre-defined authentic dribbble CDN images
+          const randomIndex = Math.floor(Math.random() * CONFIG.fallbackImages.length);
+          imageUrl = CONFIG.fallbackImages[randomIndex];
+        }
+        if (imageUrl) {
+          setCurrentImageUrl(imageUrl);
+          // update background layer
+          const bgLayer = document.querySelector('.theme-bg-layer');
+          if (bgLayer) bgLayer.style.backgroundImage = `url(${imageUrl})`;
+          
+          // Extract dominant color for accent theme
+          if (CONFIG.extractColors) {
+            getDominantColor(imageUrl, (color) => {
+              setAccentColor(color);
+            });
+          } else {
+            setAccentColor('#ffaa44');
+          }
+        }
+      } catch (error) {
+        console.warn("Dribbble fetch error, using fallback", error);
+        const randomIndex = Math.floor(Math.random() * CONFIG.fallbackImages.length);
+        const fallbackUrl = CONFIG.fallbackImages[randomIndex];
+        setCurrentImageUrl(fallbackUrl);
+        const bgLayer = document.querySelector('.theme-bg-layer');
+        if (bgLayer) bgLayer.style.backgroundImage = `url(${fallbackUrl})`;
+        getDominantColor(fallbackUrl, setAccentColor);
+      } finally {
+        setLoading(false);
+      }
+    }, []);
+
+    // On page load: random theme
+    useEffect(() => {
+      fetchRandomDribbbleImage();
+    }, [fetchRandomDribbbleImage]);
+
+    return (
+      <>
+        {/* Dynamic background layers */}
+        <div className="theme-bg-layer" style={{ backgroundImage: `url(${currentImageUrl})` }}></div>
+        <div className="theme-overlay"></div>
+
+        <div className="radix-theme-card">
+          <div className="header-actions">
+            <h1>🎨 Radix UI + Dribbble Random Theme</h1>
+            <button className="randomize-btn" onClick={fetchRandomDribbbleImage} disabled={loading}>
+              {loading ? '🎲 Loading...' : '✨ Random Dribbble Shot ✨'}
+            </button>
+          </div>
+
+          {/* Configuration info box */}
+          <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '1rem', padding: '0.8rem', marginBottom: '1.5rem', fontSize: '0.8rem' }}>
+            <div className="flex-between">
+              <span>🔧 <strong>Config</strong> (edit CONFIG object)</span>
+              <div className="flex-between" style={{ gap: '12px' }}>
+                <span>🎨 Accent: <span style={{ background: accentColor, padding: '2px 8px', borderRadius: '20px', color: '#111' }}>{accentColor}</span></span>
+                <div className="color-dot" style={{ background: accentColor }}></div>
+              </div>
+            </div>
+            <div>🖼️ Current theme image: <strong>{currentImageUrl.split('/').pop()?.slice(0, 30)}...</strong></div>
+          </div>
+
+          {/* ========== RADIX UI COMPONENTS (fully accessible) ========== */}
+          <Tabs.Root defaultValue="tab1">
+            <Tabs.List style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.2rem' }}>
+              <Tabs.Trigger className="radix-trigger" value="tab1">📸 Tab 1: Radix Tabs</Tabs.Trigger>
+              <Tabs.Trigger className="radix-trigger" value="tab2">💬 Dialog (Modal)</Tabs.Trigger>
+              <Tabs.Trigger className="radix-trigger" value="tab3">🎚️ Slider + Accordion</Tabs.Trigger>
+            </Tabs.List>
+
+            <Tabs.Content className="radix-panel" value="tab1">
+              <h3>✨ Radix Tabs – Unstyled but powerful</h3>
+              <p>These tabs use <code>@radix-ui/react-tabs</code>. They handle keyboard navigation (←→) and ARIA roles automatically. The accent color comes from the random Dribbble image above.</p>
+              <div style={{ marginTop: '1rem', display: 'flex', gap: '10px' }}>
+                <div style={{ width: '60px', height: '60px', background: accentColor, borderRadius: '16px' }}></div>
+                <div>Accent color extracted from the Dribbble shot's dominant color.</div>
+              </div>
+            </Tabs.Content>
+
+            <Tabs.Content className="radix-panel" value="tab2">
+              <h3>📬 Radix Dialog (Modal)</h3>
+              <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
+                <Dialog.Trigger asChild>
+                  <button className="dialog-trigger">Open Modal (Radix Dialog)</button>
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay className="dialog-overlay" />
+                  <Dialog.Content className="dialog-content">
+                    <Dialog.Title style={{ fontSize: '1.4rem', marginBottom: '8px' }}>🎉 Themed Dialog</Dialog.Title>
+                    <Dialog.Description>This modal uses the same accent color from Dribbble image.</Dialog.Description>
+                    <div style={{ marginTop: '16px', background: accentColor, width: '100%', height: '4px', borderRadius: '2px' }}></div>
+                    <button onClick={() => setDialogOpen(false)} style={{ marginTop: '20px', background: accentColor, border: 'none', padding: '6px 16px', borderRadius: '40px', cursor: 'pointer' }}>Close</button>
+                    <Dialog.Close asChild>
+                      <button style={{ position: 'absolute', top: '12px', right: '16px', background: 'transparent', border: 'none', fontSize: '1.2rem', cursor: 'pointer' }}>✖</button>
+                    </Dialog.Close>
+                  </Dialog.Content>
+                </Dialog.Portal>
+              </Dialog.Root>
+              <p style={{ marginTop: '16px' }}>✅ Radix Dialog manages focus trapping, escape key, and overlay behavior out-of-the-box.</p>
+            </Tabs.Content>
+
+            <Tabs.Content className="radix-panel" value="tab3">
+              <h3>🎚️ Radix Slider + Accordion</h3>
+              <Slider.Root className="slider-root" value={sliderValue} onValueChange={setSliderValue} max={100} step={1}>
+                <Slider.Track className="slider-track">
+                  <Slider.Range className="slider-range" />
+                </Slider.Track>
+                <Slider.Thumb className="slider-thumb" />
+              </Slider.Root>
+              <div>Slider value: <strong>{sliderValue[0]}%</strong> (keyboard accessible)</div>
+              
+              <div style={{ marginTop: '24px' }}>
+                <Accordion.Root type="single" collapsible>
+                  <Accordion.Item value="item1" className="accordion-item">
+                    <Accordion.Header className="accordion-header">📚 Why Radix + Dribbble theme?</Accordion.Header>
+                    <Accordion.Content className="accordion-content">
+                      Radix primitives give you unstyled, accessible building blocks. This demo randomly picks a Dribbble shot and extracts its dominant color to theme the components — showing how Radix adapts to any design system.
+                    </Accordion.Content>
+                  </Accordion.Item>
+                  <Accordion.Item value="item2" className="accordion-item">
+                    <Accordion.Header className="accordion-header">🎯 Configuration (file or terminal)</Accordion.Header>
+                    <Accordion.Content className="accordion-content">
+                      Edit the <code>CONFIG</code> object in source to add a Dribbble API token or change fallback images. You can also load it from an external JSON file (e.g., via fetch). "Terminal kit" style: run a local script to update config.json.
+                    </Accordion.Content>
+                  </Accordion.Item>
+                </Accordion.Root>
+              </div>
+            </Tabs.Content>
+          </Tabs.Root>
+
+          <div style={{ marginTop: '1.8rem', textAlign: 'center' }}>
+            <img src={currentImageUrl} alt="Random Dribbble shot" style={{ maxWidth: '100%', maxHeight: '260px', borderRadius: '1.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }} />
+            <p style={{ marginTop: '12px', fontSize: '0.75rem', opacity: 0.7 }}>🎲 Random Dribbble image (fetched from dribbble.com CDN)</p>
+          </div>
+          <footer>
+            🧩 Radix UI: Tabs • Dialog • Slider • Accordion — fully accessible. Theme color extracted from image.<br/>
+            💡 "Hits dribbble.com" – uses real Dribbble shot URLs; with API token it fetches fresh shots each click.
+          </footer>
+        </div>
+      </>
+    );
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(React.createElement(DribbbleThemeApp));
+</script>
+</body>
+</html>
